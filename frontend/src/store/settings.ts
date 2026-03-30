@@ -5,10 +5,10 @@ type ThemeType = "light" | "dark" | "system";
 
 interface SettingsState {
   defaultCountry: string;
-  defaultEntity: "iPhone" | "iPad";
+  defaultEntity: "iPhone" | "iPad" | "macSoftware";
   theme: ThemeType;
   setDefaultCountry: (country: string) => void;
-  setDefaultEntity: (entity: "iPhone" | "iPad") => void;
+  setDefaultEntity: (entity: "iPhone" | "iPad" | "macSoftware") => void;
   setTheme: (theme: ThemeType) => void;
 }
 

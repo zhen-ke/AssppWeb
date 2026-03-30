@@ -10,7 +10,7 @@ export async function searchApps(
   const params = new URLSearchParams({
     term,
     country,
-    entity: entity === "iPad" ? "iPadSoftware" : "software",
+    entity: entity === "iPad" ? "iPadSoftware" : entity === "macSoftware" ? "macSoftware" : "software",
     limit: String(limit),
   });
   return apiGet<Software[]>(`/api/search?${params}`);
