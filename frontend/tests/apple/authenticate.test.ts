@@ -10,8 +10,7 @@ vi.mock("../../src/apple/request", () => ({
 
 vi.mock("../../src/apple/bag", () => ({
   fetchBag: vi.fn(),
-  defaultAuthURL:
-    "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/authenticate",
+  defaultAuthURL: "https://auth.itunes.apple.com/auth/v1/native/fast",
 }));
 
 describe("apple/authenticate", () => {
@@ -21,8 +20,7 @@ describe("apple/authenticate", () => {
 
   it("sets guid query exactly once from bag endpoint", async () => {
     vi.mocked(fetchBag).mockResolvedValue({
-      authURL:
-        "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/authenticate?foo=1&guid=old-value",
+      authURL: "https://auth.itunes.apple.com/auth/v1/native/fast?foo=1&guid=old-value",
     });
     vi.mocked(appleRequest).mockResolvedValue({
       status: 200,

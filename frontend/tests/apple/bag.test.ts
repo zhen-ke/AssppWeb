@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildPlist } from "../../src/apple/plist";
 import { defaultAuthURL, fetchBag } from "../../src/apple/bag";
 
+const nativeFastAuthURL =
+  "https://auth.itunes.apple.com/auth/v1/native/fast";
+
 describe("apple/bag", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -10,8 +13,7 @@ describe("apple/bag", () => {
   it("parses authenticateAccount from urlBag", async () => {
     const xml = buildPlist({
       urlBag: {
-        authenticateAccount:
-          "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/authenticate",
+        authenticateAccount: nativeFastAuthURL,
       },
     });
     vi.stubGlobal(
@@ -24,12 +26,10 @@ describe("apple/bag", () => {
 
     const result = await fetchBag("aabbccddeeff");
 
-    expect(result.authURL).toBe(
-      "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/authenticate",
-    );
+    expect(result.authURL).toBe(nativeFastAuthURL);
   });
 
-  it("falls back when authenticateAccount is missing", async () => {
+  it("falls back to the native fast auth endpoint when authenticateAccount is missing", async () => {
     const xml = buildPlist({
       urlBag: {
         Ghostrider: "YES",
@@ -45,10 +45,11 @@ describe("apple/bag", () => {
 
     const result = await fetchBag("aabbccddeeff");
 
-    expect(result.authURL).toBe(defaultAuthURL);
+    expect(defaultAuthURL).toBe(nativeFastAuthURL);
+    expect(result.authURL).toBe(nativeFastAuthURL);
   });
 
-  it("falls back when bag proxy returns non-OK", async () => {
+  it("falls back to the native fast auth endpoint when bag proxy returns non-OK", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -61,6 +62,7 @@ describe("apple/bag", () => {
 
     const result = await fetchBag("aabbccddeeff");
 
-    expect(result.authURL).toBe(defaultAuthURL);
+    expect(defaultAuthURL).toBe(nativeFastAuthURL);
+    expect(result.authURL).toBe(nativeFastAuthURL);
   });
 });

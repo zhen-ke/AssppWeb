@@ -6,7 +6,7 @@ export interface BagOutput {
 }
 
 export const defaultAuthURL =
-  "https://buy.itunes.apple.com/WebObjects/MZFinance.woa/wa/authenticate";
+  "https://auth.itunes.apple.com/auth/v1/native/fast";
 
 // Fetches the bag via the backend proxy.
 // The backend fetches it using Node.js native HTTPS.
