@@ -15,6 +15,39 @@ export class AuthenticationError extends Error {
   }
 }
 
+function isRedirectStatus(status: number): boolean {
+  return status >= 300 && status < 400;
+}
+
+function isVerificationCodePrompt(
+  dict: Record<string, any>,
+  code?: string,
+): boolean {
+  if (code) {
+    return false;
+  }
+
+  if (
+    dict.failureType === "" &&
+    dict.customerMessage === "MZFinance.BadLogin.Configurator_message"
+  ) {
+    return true;
+  }
+
+  const dialog = dict.dialog as Record<string, any> | undefined;
+  const verificationText = [
+    dict.customerMessage,
+    dialog?.message,
+    dialog?.explanation,
+  ]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ");
+
+  return /verification code|trusted devices|two-factor|2fa|security code/i.test(
+    verificationText,
+  );
+}
+
 export async function authenticate(
   email: string,
   password: string,
@@ -84,7 +117,7 @@ export async function authenticate(
       const pod = podHeader || undefined;
 
       // Handle redirect
-      if (response.status === 302) {
+      if (isRedirectStatus(response.status)) {
         const location = response.headers["location"];
         if (!location) {
           throw new Error(i18n.t("errors.auth.redirectLocation"));
@@ -107,11 +140,7 @@ export async function authenticate(
       const dict = parsePlist(response.body) as Record<string, any>;
 
       // Check for 2FA requirement
-      if (
-        dict.failureType === "" &&
-        !code &&
-        dict.customerMessage === "MZFinance.BadLogin.Configurator_message"
-      ) {
+      if (isVerificationCodePrompt(dict, code)) {
         throw new AuthenticationError(
           i18n.t("errors.auth.requiresVerification"),
           true,
