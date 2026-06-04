@@ -104,6 +104,29 @@ export async function authenticate(
         );
       }
 
+      // Handle non-plist responses — Apple may return JSON or HTML on errors
+      const trimmed = response.body.trim();
+      if (!trimmed.startsWith("<")) {
+        // Likely JSON error from Apple
+        try {
+          const json = JSON.parse(trimmed) as Record<string, any>;
+          const msg =
+            (json.customerMessage as string) ||
+            (json.error as string) ||
+            (json.message as string) ||
+            JSON.stringify(json);
+          throw new Error(msg);
+        } catch (jsonErr) {
+          if (jsonErr instanceof SyntaxError) {
+            throw new Error(
+              i18n.t("errors.auth.emptyBody", { status: response.status }) +
+                `: ${trimmed.slice(0, 200)}`,
+            );
+          }
+          throw jsonErr;
+        }
+      }
+
       const dict = parsePlist(response.body) as Record<string, any>;
 
       // Check for 2FA requirement
