@@ -104,10 +104,10 @@ export async function authenticate(
         );
       }
 
-      // Handle non-plist responses — Apple may return JSON or HTML on errors
+      // Handle non-plist responses — Apple may return JSON or plain text on errors
       const trimmed = response.body.trim();
       if (!trimmed.startsWith("<")) {
-        // Likely JSON error from Apple
+        // Try to parse as JSON first (Apple sometimes returns JSON errors)
         try {
           const json = JSON.parse(trimmed) as Record<string, any>;
           const msg =
@@ -118,10 +118,8 @@ export async function authenticate(
           throw new Error(msg);
         } catch (jsonErr) {
           if (jsonErr instanceof SyntaxError) {
-            throw new Error(
-              i18n.t("errors.auth.emptyBody", { status: response.status }) +
-                `: ${trimmed.slice(0, 200)}`,
-            );
+            // Plain text response (e.g. Apple rate limit message)
+            throw new Error(trimmed.slice(0, 300));
           }
           throw jsonErr;
         }
